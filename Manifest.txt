@@ -1,0 +1,13 @@
+History.txt
+LICENSE
+Manifest.txt
+README.txt
+Rakefile
+TODO
+lib/persevere_adapter.rb
+lib/persevere_adapter/version.rb
+spec/integration/persevere_adapter_spec.rb
+spec/spec.opts
+spec/spec_helper.rb
+tasks/install.rb
+tasks/spec.rb
