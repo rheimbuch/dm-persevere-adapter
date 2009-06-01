@@ -1,5 +1,5 @@
 begin
-  gem 'rspec', '~>1.1.11'
+  gem 'rspec'
   require 'spec'
   require 'spec/rake/spectask'
 

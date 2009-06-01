@@ -1,22 +1,22 @@
 $LOAD_PATH << File.dirname(__FILE__)
-require 'spec_helper'
+
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 describe 'A Persevere adapter' do
 
   before do
     @adapter = DataMapper::Repository.adapters[:default]
   end
+  
+  describe 'when saving a resource' do
 
-  describe 'when deleting an existing resource' do
     before do
       @book = Book.new(:title => 'Hello, World!', :author => 'Anonymous')
-      @book.stub!(:new_record?).and_return(false)
     end
 
-    it 'should do an HTTP DELETE' do
-      @adapter.should_receive(:delete)
-      @book.destroy
+    it 'should call the adapter create method' do
+      #@adapter.should_receive(:create).with([@book])
+      @book.save
     end
-
   end
 end

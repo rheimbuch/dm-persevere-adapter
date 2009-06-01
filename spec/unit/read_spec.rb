@@ -1,7 +1,8 @@
 $LOAD_PATH << File.dirname(__FILE__)
-require 'spec_helper'
 
-describe 'A REST adapter' do
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+
+describe 'A Persevere adapter' do
 
   before do
     @adapter = DataMapper::Repository.adapters[:default]
