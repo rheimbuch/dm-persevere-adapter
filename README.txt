@@ -2,6 +2,8 @@
 
 A DataMapper adapter for Persevere (http://www.persvr.org/)
 
+This requires the persevere gem (http://github.com/irjudson/persevere) which provides a ruby interface to Persevere.
+
 == Usage
 
 DM Persevere Adapter is very simple and very similar to the REST
@@ -46,10 +48,10 @@ development: &defaults
   :adapter: persevere
   :host: localhost
   :port: 8080
-  
-test: 
+
+test:
   <<: *defaults
-  
+
 production:
   <<: *defaults
 
