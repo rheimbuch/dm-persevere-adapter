@@ -35,6 +35,24 @@ class MyUser
 
 end
 
+To use with Rails, you can put this in your environment.rb:
+  config.gem "dm-core"
+  config.gem "data_objects"
+  config.gem "dm-persevere-adapter", :lib => 'persevere_adapter'
+
+With a database.yml:
+
+development: &defaults
+  :adapter: persevere
+  :host: localhost
+  :port: 8080
+  
+test: 
+  <<: *defaults
+  
+production:
+  <<: *defaults
+
 == Code
 
 # Create
