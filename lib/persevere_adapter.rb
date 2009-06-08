@@ -156,8 +156,11 @@ module DataMapper
           return false
         end
 
-        # Return results
-        resources
+        if query.limit.nil?
+          resources
+        else
+          resources[0,query.limit]
+        end
       end
 
       alias :read :read_many
@@ -247,18 +250,6 @@ module DataMapper
 
         else
           puts "Error retrieving existing tables: ", result.message
-        end
-      end
-
-      def make_uri(uri_or_options)
-        if uri_or_options.is_a?(String)
-          begin
-            URI.parse(uri_or_options)
-            return uri_or_options.to_s
-          rescue URI::InvalidURIError => e
-            puts "Error parsing persevere URI: ", e
-          end
-        elsif uri_or_options.is_a?(Hash)
         end
       end
 
