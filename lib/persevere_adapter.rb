@@ -1,4 +1,3 @@
-gem 'dm-core', '~> 0.9.10'
 require 'dm-core'
 require 'rubygems'
 require 'extlib'
@@ -213,7 +212,23 @@ module DataMapper
 
       def initialize(name, uri_or_options)
         super
-        @persevere = Persevere.new(make_uri(uri_or_options))
+
+        if uri_or_options.class
+          @identity_maps = {}
+        end
+
+        @options = Hash.new
+
+        uri_or_options.each do |k,v|
+          @options[k.to_sym] = v
+        end
+
+        @options[:scheme] = @options[:adapter]
+        @options.delete(:scheme)
+
+        uri = URI::HTTP.build(@options).to_s
+
+        @persevere = Persevere.new(uri)
         @resource_naming_convention = NamingConventions::Resource::Underscored
         @identity_maps = {}
         @classes = []
@@ -244,10 +259,6 @@ module DataMapper
             puts "Error parsing persevere URI: ", e
           end
         elsif uri_or_options.is_a?(Hash)
-          nh = uri_or_options.dup
-          nh[:scheme] = nh[:adapter]
-          nh.delete(:scheme)
-          return URI::HTTP.build(nh).to_s
         end
       end
 
