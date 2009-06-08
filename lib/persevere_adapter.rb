@@ -52,6 +52,7 @@ module DataMapper
 
           if response.code == "201"# good:
             rh = JSON.parse(response.body)
+            resource.id = rh["id"]
             created += 1
           else
             return false
