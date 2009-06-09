@@ -82,5 +82,4 @@ puts "Result: #{result}"
 == To Do:
 
 - Make a do-adapter for persevere.
-- Finish Query details (limit, order, etc)
 - Cleanup Documentation

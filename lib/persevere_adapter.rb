@@ -1,5 +1,5 @@
-require 'dm-core'
 require 'rubygems'
+require 'dm-core'
 require 'extlib'
 require 'json'
 require 'persevere'
@@ -51,8 +51,17 @@ module DataMapper
           # exceptions when there's a problem
 
           if response.code == "201"# good:
-            rh = JSON.parse(response.body)
-            resource.id = rh["id"]
+            rsrc_hash = JSON.parse(response.body)
+            # Typecast attributes, DM expects them properly cast
+            resource.model.properties.each do |prop|
+              value = rsrc_hash[prop.field.to_s]
+              if !value.nil?
+                rsrc_hash[prop.field.to_s] = prop.typecast(value)
+              end
+            end
+
+            resource.id = rsrc_hash["id"]
+
             created += 1
           else
             return false
@@ -82,14 +91,14 @@ module DataMapper
       # @api semipublic
       def update(attributes, query)
         updated = 0
-        puts "In Update A: #{attributes} Q: #{query.conditions.inspect}"
-        resources = read_many(query)
-        puts "Resources found: #{resources}"
-        resources.each do |resource|
-          key = resource.class.key(self.name).map do |property|
-            resource.instance_variable_get(property.instance_variable_name)
-          end
 
+        if ! query.is_a?(DataMapper::Query)
+          resources = [query].flatten
+        else
+          resources = read_many(query)
+        end
+
+        resources.each do |resource|
           tblname = Extlib::Inflection.classify(resource.class).pluralize
           path = "/#{tblname}/#{resource.id}"
 
@@ -120,7 +129,8 @@ module DataMapper
       # @api semipublic
 
       def read_one(query)
-        read_many(query)[0]
+        results = read_many(query)
+        results[0,1]
       end
 
       ##
@@ -137,8 +147,7 @@ module DataMapper
       # @api semipublic
       def read_many(query)
         resources = Array.new
-
-        json_query = make_json_query(query.conditions)
+        json_query = make_json_query(query)
 
         tblname = Extlib::Inflection.classify(query.model).pluralize
         path = "/#{tblname}/#{json_query}"
@@ -147,21 +156,22 @@ module DataMapper
 
         if response.code == "200"
           results = JSON.parse(response.body)
-          results.each do |result|
-            values = query.fields.collect do |field|
-              result[field.field.to_s]
+          results.each do |rsrc_hash|
+            # Typecast attributes, DM expects them properly cast
+            query.model.properties.each do |prop|
+              value = rsrc_hash[prop.field.to_s]
+              if !value.nil?
+                rsrc_hash[prop.field.to_s] = prop.typecast(value)
+              end
             end
-            resources << query.model.load(values, query)
           end
+
+          resources = query.model.load(results, query)
         else
           return false
         end
 
-        if query.limit.nil?
-          resources
-        else
-          resources[0,query.limit]
-        end
+        query.filter_records(resources)
       end
 
       alias :read :read_many
@@ -178,12 +188,14 @@ module DataMapper
       # @api semipublic
       def delete(query)
         deleted = 0
-        resources = read_many(query)
-        resources.each do |resource|
-          key = resource.class.key(self.name).map do |property|
-            resource.instance_variable_get(property.instance_variable_name)
-          end
 
+        if ! query.is_a?(DataMapper::Query)
+          resources = [query].flatten
+        else
+          resources = read_many(query)
+        end
+
+        resources.each do |resource|
           tblname = Extlib::Inflection.classify(resource.class).pluralize
           path = "/#{tblname}/#{resource.id}"
 
@@ -276,37 +288,41 @@ module DataMapper
       #
       # @api semipublic
 
-      def make_json_query(conditions)
+      def make_json_query(query)
         query_terms = Array.new
+
+        conditions = query.conditions
+
         conditions.each do |condition|
-          v = condition[1].typecast(condition[2])
-          if v.is_a?(String)
-            value = "'#{condition[2]}'"
-          else
-            value = "#{condition[2]}"
-          end
-          case condition[0]
-          when :eql
-            query_terms << "#{condition[1].field()}=#{value}"
-          when :lt
-            query_terms << "#{condition[1].field()}<#{value}"
-          when :gt
-            query_terms << "#{condition[1].field()}>#{value}"
-          when :lte
-            query_terms << "#{condition[1].field()}<=#{value}"
-          when :gte
-            query_terms << "#{condition[1].field()}=>#{value}"
-          when :not
-            query_terms << "#{condition[1].field()}!=#{value}"
-          when :like
-            if condition[2].is_a?(String)
-              query_terms << "#{condition[1].field()}~'*#{condition[2].to_s}*'"
+          operator, property, bind_value = condition
+          if ! property.nil? && !bind_value.nil?
+            v = property.typecast(bind_value)
+            if v.is_a?(String)
+              value = "'#{bind_value}'"
+            else
+              value = "#{bind_value}"
             end
-          else
-            puts "Unknown condition: #{condition[0]}"
+
+            query_terms << case operator
+                           when :eql then "#{property.field()}=#{value}"
+                           when :lt then  "#{property.field()}<#{value}"
+                           when :gt then  "#{property.field()}>#{value}"
+                           when :lte then "#{property.field()}<=#{value}"
+                           when :gte then "#{property.field()}=>#{value}"
+                           when :not then "#{property.field()}!=#{value}"
+                           when :like then "#{property.field()}~'*#{value}*'"
+                           else puts "Unknown condition: #{operator}"
+                           end
           end
         end
-        query = "?#{query_terms.join("&")}"
+
+        if query_terms.length != 0
+          query = "?#{query_terms.join("&")}"
+        else
+          query = ""
+        end
+
+        query
       end
     end
   end

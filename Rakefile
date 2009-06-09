@@ -13,7 +13,7 @@ require ROOT + 'lib/persevere_adapter/version'
 GEM_NAME    = 'dm-persevere-adapter'
 GEM_VERSION = DataMapper::PersevereAdapter::VERSION
 
-Hoe.new(GEM_NAME, GEM_VERSION) do |p|
+Hoe.spec(GEM_NAME) do |p|
   p.developer('Ivan R. Judson', 'irjudson [a] gmail [d] com')
 
   p.description = 'A DataMapper Adapter for persevere'
@@ -21,14 +21,14 @@ Hoe.new(GEM_NAME, GEM_VERSION) do |p|
   p.url = 'http://github.com/USERNAME/dm-persevere-adapter'
 
   p.clean_globs |= %w[ log pkg coverage ]
-  p.spec_extras = { 
-    :has_rdoc => true, 
+  p.spec_extras = {
+    :has_rdoc => true,
     :extra_rdoc_files => %w[ README.txt LICENSE.txt TODO History.txt ]
   }
 
   p.extra_deps = [
-    ['dm-core', "~> 0.9.10"], 
-    ['extlib', "~> 0.9.10"], 
+    ['dm-core', "~> 0.9.10"],
+    ['extlib', "~> 0.9.10"],
     ['persevere', "~> 1.0.0"]
   ]
 

@@ -1,5 +1,5 @@
 module DataMapper
   module PersevereAdapter
-    VERSION = '0.0.2'
+    VERSION = '0.9.0'
   end
 end
